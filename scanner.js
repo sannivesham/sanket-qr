@@ -483,7 +483,16 @@ export class SanketScannerApp {
     const track = this.getRunningVideoTrack();
     let supported = false;
 
-    if (track && typeof track.getCapabilities === 'function') {
+    // Strategy 0: Native Android Bridge
+    if (window.AndroidBridge && typeof window.AndroidBridge.isFlashlightSupported === 'function') {
+      try {
+        if (window.AndroidBridge.isFlashlightSupported()) {
+          supported = true;
+        }
+      } catch (e) {}
+    }
+
+    if (!supported && track && typeof track.getCapabilities === 'function') {
       try {
         const caps = track.getCapabilities();
         if (caps && ('torch' in caps || caps.fillLightMode?.includes('flash'))) {
@@ -684,6 +693,9 @@ export class SanketScannerApp {
       if (this.dom.btnTorch) {
         this.dom.btnTorch.style.display = 'none';
         this.dom.btnTorch.classList.remove('active');
+        if (this.torchEnabled && window.AndroidBridge && typeof window.AndroidBridge.setFlashlight === 'function') {
+          try { window.AndroidBridge.setFlashlight(false); } catch (e) {}
+        }
         this.torchEnabled = false;
         const span = this.dom.btnTorch.querySelector('span');
         if (span) span.textContent = 'Flashlight';
@@ -699,6 +711,18 @@ export class SanketScannerApp {
 
     const nextState = !this.torchEnabled;
     let success = false;
+
+    // Strategy 0: Native Android Bridge (hardware flash via CameraManager)
+    if (window.AndroidBridge && typeof window.AndroidBridge.setFlashlight === 'function') {
+      try {
+        if (window.AndroidBridge.setFlashlight(nextState)) {
+          success = true;
+        }
+      } catch (err0) {
+        console.warn('Native AndroidBridge setFlashlight failed:', err0);
+      }
+    }
+
     const track = this.getRunningVideoTrack();
 
     // Strategy 1: Direct native MediaStreamTrack applyConstraints
