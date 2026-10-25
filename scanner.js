@@ -120,6 +120,8 @@ export class SanketScannerApp {
       // Upload view
       dropzone: document.getElementById('upload-dropzone'),
       fileInput: document.getElementById('file-input'),
+      cameraSnapInput: document.getElementById('camera-snap-input'),
+      cameraSnapInputUpload: document.getElementById('camera-snap-input-upload'),
       imagePreviewHolder: document.getElementById('image-preview-holder'),
       imagePreview: document.getElementById('image-preview'),
 
@@ -159,8 +161,35 @@ export class SanketScannerApp {
       this.dom.btnTorch.addEventListener('click', () => this.toggleTorch());
     }
 
+    // Native Camera Snapshots & Android bridge listeners
+    const handleSnap = (e) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        this.switchMode('upload');
+        this.handleFileUpload(files[0]);
+      }
+    };
+    if (this.dom.cameraSnapInput) {
+      this.dom.cameraSnapInput.addEventListener('change', handleSnap);
+    }
+    if (this.dom.cameraSnapInputUpload) {
+      this.dom.cameraSnapInputUpload.addEventListener('change', handleSnap);
+    }
+
+    // Android Webview runtime permission callback
+    window.onCameraPermissionGranted = () => {
+      console.log('Native camera permission granted.');
+      this.enumerateCameras().then(() => {
+        if (!this.isCameraScanning) {
+          this.startCameraScanner();
+        }
+      });
+    };
+
     // Dropzone & File Upload
-    this.dom.dropzone.addEventListener('click', () => this.dom.fileInput.click());
+    if (this.dom.dropzone && this.dom.dropzone.tagName !== 'LABEL') {
+      this.dom.dropzone.addEventListener('click', () => this.dom.fileInput.click());
+    }
 
     this.dom.dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -288,6 +317,17 @@ export class SanketScannerApp {
     this.dom.btnStartCamera.style.display = 'none';
     this.dom.btnStopCamera.style.display = 'inline-flex';
 
+    // Check native Android permission if available
+    if (window.AndroidBridge && typeof window.AndroidBridge.hasCameraPermission === 'function') {
+      if (!window.AndroidBridge.hasCameraPermission()) {
+        if (typeof window.AndroidBridge.requestCameraPermission === 'function') {
+          window.AndroidBridge.requestCameraPermission();
+          Toast.info('Please allow camera permission in the dialog.');
+          return;
+        }
+      }
+    }
+
     const selectedCameraId = this.dom.cameraSelect.value;
     const cameraConfig = selectedCameraId 
       ? { deviceId: { exact: selectedCameraId } }
@@ -306,14 +346,45 @@ export class SanketScannerApp {
     };
 
     try {
-      await this.html5QrCode.start(
-        cameraConfig,
-        config,
-        (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
-        (errorMessage) => {
-          // Parsing frame errors are normal during live camera feed
+      try {
+        await this.html5QrCode.start(
+          cameraConfig,
+          config,
+          (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
+          (errorMessage) => {
+            // Parsing frame errors are normal during live camera feed
+          }
+        );
+      } catch (firstErr) {
+        console.warn('Initial camera config failed, trying fallback...', firstErr);
+        let started = false;
+        try {
+          await this.html5QrCode.start(
+            { facingMode: 'user' },
+            config,
+            (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
+            () => {}
+          );
+          started = true;
+        } catch (secondErr) {
+          console.warn('User facing fallback failed, enumerating cameras...', secondErr);
+          try {
+            const devices = await window.Html5Qrcode.getCameras();
+            if (devices && devices.length > 0) {
+              await this.html5QrCode.start(
+                devices[0].id,
+                config,
+                (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
+                () => {}
+              );
+              started = true;
+            }
+          } catch (thirdErr) {
+            console.error('All camera fallbacks failed:', thirdErr);
+          }
         }
-      );
+        if (!started) throw firstErr;
+      }
 
       this.isCameraScanning = true;
       this.dom.reticleOverlay.classList.add('active');
@@ -379,8 +450,10 @@ export class SanketScannerApp {
   async handleFileUpload(file) {
     if (!file) return;
 
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
+    const isImage = (file.type && file.type.startsWith('image/')) || 
+                    /\.(png|jpe?g|webp|bmp|gif|svg)$/i.test(file.name || '') ||
+                    !file.type; // Some mobile file pickers return empty MIME type
+    if (!isImage) {
       Toast.error('Unsupported format. Please upload PNG, JPG, or WEBP images.');
       return;
     }

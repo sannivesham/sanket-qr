@@ -597,6 +597,23 @@ export class SanketQRApp {
   downloadPNG() {
     if (!this.canvas) return;
     try {
+      const filename = `sanket-qr-${Date.now()}.png`;
+
+      // 1. Check for native Android Bridge
+      if (window.AndroidBridge && typeof window.AndroidBridge.saveImageToGallery === 'function') {
+        try {
+          const dataUrl = this.canvas.toDataURL('image/png');
+          const success = window.AndroidBridge.saveImageToGallery(dataUrl, filename);
+          if (success) {
+            Toast.success('QR code saved to Gallery & Downloads!');
+            return;
+          }
+        } catch (bridgeErr) {
+          console.warn('AndroidBridge save error, falling back to blob:', bridgeErr);
+        }
+      }
+
+      // 2. Standard browser Blob download fallback
       this.canvas.toBlob((blob) => {
         if (!blob) {
           Toast.error('Could not create PNG blob');
@@ -605,7 +622,7 @@ export class SanketQRApp {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `sanket-qr-${Date.now()}.png`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -627,11 +644,28 @@ export class SanketQRApp {
       return;
     }
     try {
+      const filename = `sanket-qr-${Date.now()}.svg`;
+
+      // 1. Check for native Android Bridge
+      if (window.AndroidBridge && typeof window.AndroidBridge.saveFileToDownloads === 'function') {
+        try {
+          const base64Svg = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(this.svgString)));
+          const success = window.AndroidBridge.saveFileToDownloads(base64Svg, filename, 'image/svg+xml');
+          if (success) {
+            Toast.success('Vector SVG saved to Downloads!');
+            return;
+          }
+        } catch (bridgeErr) {
+          console.warn('AndroidBridge save error, falling back to blob:', bridgeErr);
+        }
+      }
+
+      // 2. Standard browser Blob download fallback
       const blob = new Blob([this.svgString], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `sanket-qr-${Date.now()}.svg`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
