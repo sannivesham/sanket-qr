@@ -1,0 +1,16 @@
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor & IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node / Scratch files (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sanket QR — Instant High-Resolution QR Code Generator &amp; Scanner</title>
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="Sanket QR — Instant High-Resolution QR Code Generator & Scanner">
+  <meta name="description" content="Generate high-resolution vector SVG and PNG QR codes instantly in your browser. 100% private, free, and open-source. Auto-formatting, customizable colors, and scan support.">
+  <meta name="keywords" content="QR code generator, free QR code, SVG QR code, high resolution QR code, print QR code, camera QR scanner, sanket qr">
+  <meta name="author" content="Sanket QR">
+  <meta name="theme-color" content="#ffffff">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sanket-qr.com/">
+  <meta property="og:title" content="Sanket QR — Instant High-Resolution QR Code Generator">
+  <meta property="og:description" content="Generate crisp, print-ready SVG & PNG QR codes instantly. Fast, free, private, and client-side.">
+  <meta property="og:image" content="assets/screenshots/og-banner.svg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://sanket-qr.com/">
+  <meta property="twitter:title" content="Sanket QR — Instant High-Resolution QR Code Generator">
+  <meta property="twitter:description" content="Generate crisp, print-ready SVG & PNG QR codes instantly. Fast, free, private, and client-side.">
+  <meta property="twitter:image" content="assets/screenshots/og-banner.svg">
+
+  <!-- Favicons & Manifest -->
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="index.html" class="brand-link" aria-label="Sanket QR Homepage">
+        <img src="assets/logo/sanket-qr-logo.svg" alt="Sanket QR Logo" class="brand-logo-img" width="160" height="36">
+      </a>
+
+      <nav class="nav-links" aria-label="Main Navigation">
+        <a href="index.html" class="nav-item active" aria-current="page">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>Generator</span>
+        </a>
+        <a href="scan.html" class="nav-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+          </svg>
+          <span>Scanner</span>
+        </a>
+        <div class="badge-tag" title="All processing happens locally on your device">
+          <span class="badge-dot"></span>
+          <span>100% Client-Side</span>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+      <div class="hero-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Instant • Print Quality • Vector SVG</span>
+      </div>
+      <h1 class="hero-title">Generate QR Codes Instantly</h1>
+      <p class="hero-subtitle">
+        Turn any URL, text, or credentials into clean, high-resolution QR codes in milliseconds. Download vector SVG for print or PNG for web.
+      </p>
+    </section>
+
+    <!-- Generator Interface Grid -->
+    <div class="generator-grid">
+      <!-- Left Column: Controls & Input Form -->
+      <section class="card-panel" aria-labelledby="generator-heading">
+        <div class="card-header-row">
+          <h2 id="generator-heading" class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span>Create Your QR Code</span>
+          </h2>
+          <span class="label-hint">Fast &amp; Private</span>
+        </div>
+
+        <!-- Input Category Tabs (Extensible Architecture) -->
+        <div class="tabs-scroll-wrapper" role="tablist" aria-label="Content Type">
+          <div class="tabs-nav">
+            <button type="button" class="tab-btn active" data-tab="url" role="tab" aria-selected="true" aria-controls="tab-url">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span>Website URL</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="text" role="tab" aria-selected="false" aria-controls="tab-text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+              <span>Plain Text</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="wifi" role="tab" aria-selected="false" aria-controls="tab-wifi">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+              <span>Wi-Fi Network</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="email" role="tab" aria-selected="false" aria-controls="tab-email">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span>Email</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="phone" role="tab" aria-selected="false" aria-controls="tab-phone">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <span>Phone</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="vcard" role="tab" aria-selected="false" aria-controls="tab-vcard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>vCard</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 1: URL (Primary & Default) -->
+        <div id="tab-url" class="tab-content active" role="tabpanel">
+          <div class="form-group">
+            <label for="url-input" class="form-label">
+              <span>Destination URL</span>
+              <span class="label-hint">https:// is auto-added</span>
+            </label>
+            <div class="input-wrapper">
+              <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <input 
+                type="text" 
+                id="url-input" 
+                class="input-field has-icon-left has-action-right" 
+                placeholder="example.com/page or https://..."
+                autocomplete="off"
+                spellcheck="false"
+                aria-describedby="url-error-msg"
+              >
+              <div class="input-action-right">
+                <button type="button" id="url-clear-btn" class="input-clear-btn" aria-label="Clear URL input" title="Clear">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <button type="button" id="url-paste-btn" class="input-inline-btn" title="Paste from clipboard">
+                  Paste
+                </button>
+              </div>
+            </div>
+            <div id="url-error-msg" class="field-error-msg" role="alert"></div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Plain Text -->
+        <div id="tab-text" class="tab-content" role="tabpanel">
+          <div class="form-group">
+            <label for="text-input" class="form-label">
+              <span>Text Message / Note</span>
+              <span class="label-hint">Plain UTF-8 text</span>
+            </label>
+            <textarea id="text-input" class="textarea-field" placeholder="Enter any text, notes, or instructions here..."></textarea>
+          </div>
+        </div>
+
+        <!-- Tab 3: Wi-Fi Network -->
+        <div id="tab-wifi" class="tab-content" role="tabpanel">
+          <div class="form-group">
+            <label for="wifi-ssid" class="form-label">Network Name (SSID)</label>
+            <input type="text" id="wifi-ssid" class="input-field" placeholder="e.g. MyHomeWiFi">
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="wifi-pass" class="form-label">Password</label>
+              <input type="text" id="wifi-pass" class="input-field" placeholder="Wi-Fi Password">
+            </div>
+            <div class="form-group">
+              <label for="wifi-type" class="form-label">Security</label>
+              <select id="wifi-type" class="select-field">
+                <option value="WPA" selected>WPA/WPA2/WPA3</option>
+                <option value="WEP">WEP</option>
+                <option value="nopass">None (Open Network)</option>
+              </select>
+            </div>
+          </div>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; margin-top: 4px;">
+            <input type="checkbox" id="wifi-hidden">
+            <span>Hidden Network (SSID is not broadcasted)</span>
+          </label>
+        </div>
+
+        <!-- Tab 4: Email -->
+        <div id="tab-email" class="tab-content" role="tabpanel">
+          <div class="form-group">
+            <label for="email-to" class="form-label">Recipient Email</label>
+            <input type="email" id="email-to" class="input-field" placeholder="hello@example.com">
+          </div>
+          <div class="form-group">
+            <label for="email-sub" class="form-label">Subject</label>
+            <input type="text" id="email-sub" class="input-field" placeholder="Subject line">
+          </div>
+          <div class="form-group">
+            <label for="email-body" class="form-label">Message Body</label>
+            <textarea id="email-body" class="textarea-field" placeholder="Email message body..."></textarea>
+          </div>
+        </div>
+
+        <!-- Tab 5: Phone -->
+        <div id="tab-phone" class="tab-content" role="tabpanel">
+          <div class="form-group">
+            <label for="phone-input" class="form-label">Phone Number</label>
+            <input type="tel" id="phone-input" class="input-field" placeholder="+1 234 567 8900">
+          </div>
+        </div>
+
+        <!-- Tab 6: vCard Contact -->
+        <div id="tab-vcard" class="tab-content" role="tabpanel">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="vcard-first" class="form-label">First Name</label>
+              <input type="text" id="vcard-first" class="input-field" placeholder="John">
+            </div>
+            <div class="form-group">
+              <label for="vcard-last" class="form-label">Last Name</label>
+              <input type="text" id="vcard-last" class="input-field" placeholder="Doe">
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="vcard-phone" class="form-label">Phone</label>
+              <input type="tel" id="vcard-phone" class="input-field" placeholder="+1 555-0199">
+            </div>
+            <div class="form-group">
+              <label for="vcard-email" class="form-label">Email</label>
+              <input type="email" id="vcard-email" class="input-field" placeholder="john@company.com">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="vcard-org" class="form-label">Company / Organization</label>
+            <input type="text" id="vcard-org" class="input-field" placeholder="Acme Inc.">
+          </div>
+        </div>
+
+        <!-- Customization Settings Accordion -->
+        <div class="customization-drawer">
+          <button type="button" id="settings-toggle" class="drawer-toggle" aria-expanded="false" aria-controls="settings-drawer">
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Custom Styling &amp; Print Resolution</span>
+            </span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="settings-drawer" class="drawer-content">
+            <div class="settings-grid">
+              <div class="form-group">
+                <label class="form-label" for="fg-color">Foreground Color</label>
+                <div class="color-picker-row">
+                  <div class="color-input-badge">
+                    <input type="color" id="fg-color" value="#0f172a">
+                  </div>
+                  <span style="font-size: 0.825rem; font-family: var(--font-mono);">QR Pattern</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="bg-color">Background Color</label>
+                <div class="color-picker-row">
+                  <div class="color-input-badge">
+                    <input type="color" id="bg-color" value="#ffffff">
+                  </div>
+                  <span style="font-size: 0.825rem; font-family: var(--font-mono);">Background</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="qr-ecc">Error Correction (ECC)</label>
+                <select id="qr-ecc" class="select-field">
+                  <option value="L">Level L (7% recovery)</option>
+                  <option value="M" selected>Level M (15% - Recommended)</option>
+                  <option value="Q">Level Q (25% recovery)</option>
+                  <option value="H">Level H (30% - Best for Print)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="qr-size">Raster Export Size (PNG)</label>
+                <select id="qr-size" class="select-field">
+                  <option value="512">Standard (512 x 512 px)</option>
+                  <option value="1024" selected>High-Res (1024 x 1024 px)</option>
+                  <option value="2048">Ultra Print (2048 x 2048 px)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Generate Button -->
+        <button type="button" id="generate-btn" class="btn-primary" aria-label="Generate QR Code">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="1.5"/></svg>
+          <span>Generate QR Code</span>
+        </button>
+      </section>
+
+      <!-- Right Column: Live QR Preview & Actions (Sticky) -->
+      <aside class="preview-card-sticky">
+        <div class="card-panel">
+          <div class="card-header-row">
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Live Preview</span>
+            </h2>
+            <span class="badge-tag" style="background: var(--bg-elevated); color: var(--text-muted); border-color: var(--border-light);">Vector Ready</span>
+          </div>
+
+          <!-- QR Display Area -->
+          <div id="qr-display-box" class="qr-display-box" aria-live="polite">
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state">
+              <div class="empty-state-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </div>
+              <h3 class="empty-state-title">No QR Code Yet</h3>
+              <p class="empty-state-desc">Enter your website URL or content on the left and tap Generate to preview.</p>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state">
+              <div class="spinner"></div>
+              <span style="font-size: 0.9rem; font-weight: 600;">Generating high-res matrix...</span>
+            </div>
+
+            <!-- Generated State -->
+            <div id="qr-rendered-wrapper" class="qr-rendered-wrapper">
+              <div id="canvas-holder" class="qr-canvas-holder"></div>
+              
+              <!-- Content Summary -->
+              <div class="qr-content-summary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span id="qr-summary-text" class="qr-summary-text"></span>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="preview-actions-grid">
+                <button type="button" id="btn-download-png" class="btn-primary btn-download-primary" title="Download High-Res PNG">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>Download PNG</span>
+                </button>
+                <button type="button" id="btn-download-svg" class="btn-secondary" title="Download Scalable Vector SVG">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                  <span>Download SVG</span>
+                </button>
+                <button type="button" id="btn-copy-link" class="btn-secondary" title="Copy Content / Link">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <span>Copy Link</span>
+                </button>
+                <button type="button" id="btn-copy-image" class="btn-secondary" title="Copy Image to Clipboard" style="grid-column: span 2;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <span>Copy Image to Clipboard</span>
+                </button>
+              </div>
+
+              <!-- Reset / Generate Again -->
+              <div class="reset-row">
+                <button type="button" id="btn-generate-again" class="btn-text-link">
+                  Generate Another Code
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Recent History Section -->
+    <section id="history-section" class="history-section" style="display: none;" aria-labelledby="history-heading">
+      <div class="history-header">
+        <h2 id="history-heading" class="history-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Recent Codes</span>
+        </h2>
+        <button type="button" id="btn-clear-history" class="btn-text-link">Clear History</button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+    </section>
+
+    <!-- Key Product Features -->
+    <section style="margin-top: 56px; border-top: 1px solid var(--border-light); padding-top: 48px;">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 8px;">Why Choose Sanket QR?</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Engineered for modern workflows with zero bloat and maximum security.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+        <div class="card-panel" style="padding: 20px;">
+          <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--text-main);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 6px;">Zero Latency</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">Codes generate locally in your browser. No server round-trips, no loading lag, and no rate limits.</p>
+        </div>
+        <div class="card-panel" style="padding: 20px;">
+          <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--accent-green);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 6px;">100% Private</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">Your URLs and private Wi-Fi passwords never leave your device. Complete client-side privacy guaranteed.</p>
+        </div>
+        <div class="card-panel" style="padding: 20px;">
+          <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--primary);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          </div>
+          <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 6px;">Vector Print Quality</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">Export crisp SVG files for high-DPI packaging, billboards, stickers, and business cards without pixelation.</p>
+        </div>
+        <div class="card-panel" style="padding: 20px;">
+          <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--text-main);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 6px;">Universal Compatibility</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">Standard ISO/IEC 18004 compliant QR codes guaranteed to scan instantly on iOS, Android, and industrial scanners.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <img src="assets/logo/sanket-qr-mark.svg" alt="Sanket Mark" width="24" height="24">
+        <span>sanket qr</span>
+      </div>
+      <div class="footer-copyright">
+        &copy; <span id="current-year">2026</span> Sanket QR. Production-grade client-side QR tools.
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Generator</a>
+        <a href="scan.html">Scanner</a>
+        <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- QR Engine Vendor Library with CDN Fallback -->
+  <script src="assets/vendor/qrcode.min.js"></script>
+  <script>
+    if (typeof window.QRCode === 'undefined') {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js';
+      document.head.appendChild(s);
+    }
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+  </script>
+
+  <!-- Application Logic -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>

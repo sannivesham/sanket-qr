@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sanket QR — Live Camera &amp; Image QR Code Scanner</title>
+
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="Sanket QR — Live Camera & Image QR Code Scanner">
+  <meta name="description" content="Scan QR codes using your device camera or upload image files (PNG, JPG, WEBP). Fast, free, private client-side decoding with zero data sent to external servers.">
+  <meta name="keywords" content="QR code scanner, camera QR reader, upload QR code, decode QR image, online QR scanner, sanket qr">
+  <meta name="author" content="Sanket QR">
+  <meta name="theme-color" content="#ffffff">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sanket-qr.com/scan.html">
+  <meta property="og:title" content="Sanket QR — Live Camera & Image QR Scanner">
+  <meta property="og:description" content="Scan QR codes with your live camera or upload images. Instant, client-side, and private.">
+  <meta property="og:image" content="assets/screenshots/og-banner.svg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://sanket-qr.com/scan.html">
+  <meta property="twitter:title" content="Sanket QR — Live Camera & Image QR Scanner">
+  <meta property="twitter:description" content="Scan QR codes with your live camera or upload images. Instant, client-side, and private.">
+  <meta property="twitter:image" content="assets/screenshots/og-banner.svg">
+
+  <!-- Favicons & Manifest -->
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="index.html" class="brand-link" aria-label="Sanket QR Homepage">
+        <img src="assets/logo/sanket-qr-logo.svg" alt="Sanket QR Logo" class="brand-logo-img" width="160" height="36">
+      </a>
+
+      <nav class="nav-links" aria-label="Main Navigation">
+        <a href="index.html" class="nav-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>Generator</span>
+        </a>
+        <a href="scan.html" class="nav-item active" aria-current="page">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+          </svg>
+          <span>Scanner</span>
+        </a>
+        <div class="badge-tag" title="Decodes 100% inside your browser">
+          <span class="badge-dot"></span>
+          <span>Camera &amp; Upload</span>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+      <div class="hero-pill">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>Live Camera • Image Upload • Clipboard Paste</span>
+      </div>
+      <h1 class="hero-title">Scan QR Codes Effortlessly</h1>
+      <p class="hero-subtitle">
+        Scan in real-time with your device camera or upload image files directly. Instant decoding with zero data upload to any server.
+      </p>
+    </section>
+
+    <!-- Scanner Dual Grid -->
+    <div class="scanner-grid">
+      <!-- Left Column: Scanner Modes & Viewfinder -->
+      <section class="card-panel" aria-labelledby="scanner-heading">
+        <div class="card-header-row">
+          <h2 id="scanner-heading" class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01"/></svg>
+            <span>Scanner Input</span>
+          </h2>
+
+          <!-- Camera Selection Dropdown (populated dynamically) -->
+          <select id="camera-select" class="select-field" style="max-width: 170px; display: none;" aria-label="Select Camera Device">
+            <option value="">Default Camera</option>
+          </select>
+        </div>
+
+        <!-- Mode Toggle Tabs (Camera vs Upload) -->
+        <div class="tabs-scroll-wrapper" role="tablist" aria-label="Scanner Mode">
+          <div class="tabs-nav" style="width: 100%;">
+            <button type="button" id="tab-mode-camera" class="tab-btn active" style="flex: 1; justify-content: center;" role="tab" aria-selected="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <span>Live Camera</span>
+            </button>
+            <button type="button" id="tab-mode-upload" class="tab-btn" style="flex: 1; justify-content: center;" role="tab" aria-selected="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Upload Image</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel 1: Live Camera Scanner -->
+        <div id="panel-camera" style="display: block;">
+          <div class="scanner-viewfinder-container">
+            <!-- Html5Qrcode video injects here -->
+            <div id="reader"></div>
+
+            <!-- Custom Reticle Laser Overlay -->
+            <div id="reticle-overlay" class="scanner-reticle-overlay">
+              <div class="reticle-box">
+                <div class="scanner-laser-line"></div>
+              </div>
+            </div>
+
+            <!-- Permission / Start Camera Prompt -->
+            <div id="camera-prompt-box" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; color: #ffffff; background: #0f172a;">
+              <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+              <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">Camera Access Required</h3>
+              <p style="font-size: 0.85rem; color: #94a3b8; max-width: 280px; margin-bottom: 18px;">
+                Allow camera permission to scan QR codes in real-time. Frames are analyzed locally on your device.
+              </p>
+              <button type="button" id="btn-start-camera" class="btn-primary" style="max-width: 200px; height: 44px; background: #ffffff; color: #0f172a;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                <span>Start Camera</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Camera Controls -->
+          <div class="camera-controls-bar">
+            <button type="button" id="btn-stop-camera" class="btn-secondary" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"/></svg>
+              <span>Pause Camera</span>
+            </button>
+            <button type="button" id="btn-torch" class="btn-secondary" style="display: none;" title="Toggle Flashlight">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>Flashlight</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel 2: Image Upload Scanner -->
+        <div id="panel-upload" style="display: none;">
+          <input type="file" id="file-input" accept="image/png, image/jpeg, image/jpg, image/webp" style="display: none;">
+          <div id="upload-dropzone" class="upload-dropzone" tabindex="0" role="button" aria-label="Drop or select QR code image">
+            <div class="dropzone-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <h3 class="dropzone-title">Upload a QR Code Image</h3>
+            <p class="dropzone-hint">
+              Drag and drop PNG, JPG, or WEBP image here, or <strong>browse files</strong>
+            </p>
+            <span class="badge-tag" style="background: var(--bg-elevated); color: var(--text-muted); border-color: var(--border-light); margin-top: 4px;">
+              Tip: Press Ctrl+V anywhere to paste a screenshot!
+            </span>
+          </div>
+
+          <!-- Uploaded Image Preview -->
+          <div id="image-preview-holder" class="image-preview-holder" style="margin-top: 16px;">
+            <img id="image-preview" alt="QR Code Preview">
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Decoded Result Card -->
+      <aside>
+        <div id="decoded-result-card" class="decoded-result-card" aria-live="polite">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <span id="decoded-type-badge" class="decoded-status-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              QR Code Detected
+            </span>
+            <span style="font-size: 0.775rem; color: var(--text-muted);">Decoded locally</span>
+          </div>
+
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">Decoded Content:</h3>
+          
+          <!-- Decoded Text Display (Safe against HTML injection) -->
+          <div id="decoded-content" class="decoded-box"></div>
+
+          <!-- Result Actions -->
+          <div class="result-actions-grid">
+            <a id="btn-open-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary" style="display: none;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <span>Open Link</span>
+            </a>
+            <button type="button" id="btn-copy-decoded" class="btn-secondary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy Text</span>
+            </button>
+            <button type="button" id="btn-share-decoded" class="btn-secondary btn-icon-only" title="Share" aria-label="Share decoded result">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </button>
+          </div>
+
+          <div style="margin-top: 18px; text-align: center;">
+            <button type="button" id="btn-scan-again" class="btn-text-link" style="font-size: 0.9rem;">
+              Scan Another Code
+            </button>
+          </div>
+        </div>
+
+        <!-- Initial Placeholder Card when nothing is scanned yet -->
+        <div id="scanner-placeholder-card" class="card-panel" style="text-align: center; padding: 36px 20px;">
+          <div style="width: 54px; height: 54px; border-radius: var(--radius-lg); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--text-dim);">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          </div>
+          <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 6px;">Ready to Scan</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 280px; margin: 0 auto; line-height: 1.5;">
+            Point your camera at a QR code or upload an image on the left. The result will appear here instantly.
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Scan History Section -->
+    <section id="scan-history-section" class="history-section" style="display: none;" aria-labelledby="scan-history-heading">
+      <div class="history-header">
+        <h2 id="scan-history-heading" class="history-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Recent Scans</span>
+        </h2>
+        <button type="button" id="btn-clear-scan-history" class="btn-text-link">Clear Scans</button>
+      </div>
+      <div id="scan-history-list" class="history-list"></div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <img src="assets/logo/sanket-qr-mark.svg" alt="Sanket Mark" width="24" height="24">
+        <span>sanket qr</span>
+      </div>
+      <div class="footer-copyright">
+        &copy; <span id="current-year">2026</span> Sanket QR. Production-grade client-side QR tools.
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Generator</a>
+        <a href="scan.html">Scanner</a>
+        <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Html5Qrcode Library with CDN Fallback -->
+  <script src="assets/vendor/html5-qrcode.min.js"></script>
+  <script>
+    if (typeof window.Html5Qrcode === 'undefined') {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+      document.head.appendChild(s);
+    }
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+  </script>
+
+  <!-- Scanner Logic Module -->
+  <script type="module" src="scanner.js"></script>
+</body>
+</html>

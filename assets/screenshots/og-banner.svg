@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" fill="none">
+  <defs>
+    <radialGradient id="grad1" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F8FAFC"/>
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="20" stdDeviation="30" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#grad1)"/>
+  <circle cx="1050" cy="120" r="300" fill="#E2E8F0" opacity="0.3"/>
+  <circle cx="150" cy="550" r="220" fill="#E2E8F0" opacity="0.3"/>
+  
+  <!-- Left Content -->
+  <g transform="translate(100, 140)">
+    <!-- Brand Badge -->
+    <rect width="130" height="36" rx="18" fill="#F1F5F9" stroke="#E2E8F0"/>
+    <circle cx="20" cy="18" r="5" fill="#10B981"/>
+    <text x="34" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#0F172A">SANKET QR</text>
+
+    <!-- Main Heading -->
+    <text x="0" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="54" font-weight="800" fill="#0F172A" letter-spacing="-1.5">
+      Generate &amp; Scan
+    </text>
+    <text x="0" y="175" font-family="system-ui, -apple-system, sans-serif" font-size="54" font-weight="800" fill="#0F172A" letter-spacing="-1.5">
+      QR Codes Instantly
+    </text>
+
+    <!-- Subtitle -->
+    <text x="0" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="400" fill="#475569">
+      Ultra fast, privacy-first, zero-reload QR code generator
+    </text>
+    <text x="0" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="400" fill="#475569">
+      and live camera/image scanner. Vector SVG &amp; PNG downloads.
+    </text>
+
+    <!-- Feature Pills -->
+    <g transform="translate(0, 320)">
+      <rect width="140" height="42" rx="10" fill="#0F172A"/>
+      <text x="70" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#FFFFFF" text-anchor="middle">SVG &amp; PNG</text>
+
+      <rect x="155" width="160" height="42" rx="10" fill="#FFFFFF" stroke="#E2E8F0"/>
+      <text x="235" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#0F172A" text-anchor="middle">Camera Scanner</text>
+
+      <rect x="330" width="150" height="42" rx="10" fill="#FFFFFF" stroke="#E2E8F0"/>
+      <text x="405" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#0F172A" text-anchor="middle">100% Client-side</text>
+    </g>
+  </g>
+
+  <!-- Right Visual QR Card Mockup -->
+  <g transform="translate(740, 110)" filter="url(#shadow)">
+    <rect width="360" height="410" rx="24" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+    <!-- Mock QR Code -->
+    <g transform="translate(55, 45)">
+      <!-- Corner Top Left -->
+      <rect x="0" y="0" width="70" height="70" rx="16" fill="#0F172A"/>
+      <rect x="14" y="14" width="42" height="42" rx="8" fill="#FFFFFF"/>
+      <rect x="25" y="25" width="20" height="20" rx="4" fill="#0F172A"/>
+
+      <!-- Corner Top Right -->
+      <rect x="180" y="0" width="70" height="70" rx="16" fill="#0F172A"/>
+      <rect x="194" y="14" width="42" height="42" rx="8" fill="#FFFFFF"/>
+      <rect x="205" y="25" width="20" height="20" rx="4" fill="#0F172A"/>
+
+      <!-- Corner Bottom Left -->
+      <rect x="0" y="180" width="70" height="70" rx="16" fill="#0F172A"/>
+      <rect x="14" y="194" width="42" height="42" rx="8" fill="#FFFFFF"/>
+      <rect x="25" y="205" width="20" height="20" rx="4" fill="#0F172A"/>
+
+      <!-- Middle Matrix Dots -->
+      <rect x="90" y="15" width="20" height="20" rx="4" fill="#0F172A"/>
+      <rect x="130" y="15" width="25" height="20" rx="4" fill="#0F172A"/>
+      <rect x="90" y="55" width="20" height="35" rx="4" fill="#0F172A"/>
+      <rect x="130" y="55" width="20" height="20" rx="4" fill="#10B981"/>
+      <rect x="20" y="90" width="35" height="20" rx="4" fill="#0F172A"/>
+      <rect x="90" y="105" width="70" height="40" rx="6" fill="#0F172A"/>
+      <rect x="180" y="90" width="25" height="60" rx="4" fill="#0F172A"/>
+      <rect x="225" y="105" width="25" height="45" rx="4" fill="#0F172A"/>
+      <rect x="90" y="180" width="25" height="25" rx="4" fill="#0F172A"/>
+      <rect x="135" y="180" width="40" height="25" rx="4" fill="#0F172A"/>
+      <rect x="195" y="180" width="55" height="25" rx="4" fill="#0F172A"/>
+      <rect x="90" y="225" width="55" height="25" rx="4" fill="#0F172A"/>
+      <rect x="165" y="225" width="30" height="25" rx="4" fill="#0F172A"/>
+      <rect x="215" y="225" width="35" height="25" rx="4" fill="#10B981"/>
+    </g>
+    <!-- Label -->
+    <rect x="55" y="330" width="250" height="44" rx="10" fill="#F8FAFC" stroke="#E2E8F0"/>
+    <text x="180" y="357" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#0F172A" text-anchor="middle">sanket-qr.com/ready</text>
+  </g>
+</svg>
