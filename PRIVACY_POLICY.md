@@ -3,7 +3,7 @@
 **Effective Date:** October 25, 2026  
 **Application Name:** Sanket QR (Generator & Scanner)  
 **Developer / Owner:** Sannivesham  
-**Live Policy URL:** [https://sannivesham.github.io/sanket-qr/privacy.html](https://sannivesham.github.io/sanket-qr/privacy.html)  
+**Live Policy URL:** [https://sanket-qr.sannivesham.com/privacy.html](https://sanket-qr.sannivesham.com/privacy.html) (Mirror: `https://sannivesham.github.io/sanket-qr/privacy.html`)  
 **Contact Email:** dev@sannivesham.com  
 
 ---
