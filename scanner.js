@@ -186,7 +186,46 @@ export class SanketScannerApp {
       });
     };
 
-    // Dropzone & File Upload
+    // Android Webview native image picked callback
+    window.onNativeImagePicked = (dataUrl) => {
+      console.log('Received native image from Android');
+      try {
+        this.switchMode('upload');
+        const arr = dataUrl.split(',');
+        const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        const file = new File([u8arr], 'sanket_scan_' + Date.now() + '.png', { type: mime });
+        this.handleFileUpload(file);
+      } catch (err) {
+        console.error('Failed to parse native image:', err);
+        Toast.error('Could not load selected image');
+      }
+    };
+
+    // In Android WebView, tapping dropzone triggers native photo picker directly
+    this.dom.dropzone?.addEventListener('click', (e) => {
+      if (window.AndroidBridge && typeof window.AndroidBridge.openImagePicker === 'function') {
+        e.preventDefault();
+        e.stopPropagation();
+        window.AndroidBridge.openImagePicker();
+      }
+    });
+
+    const btnSnapUpload = document.querySelector('label[for="camera-snap-input-upload"]');
+    btnSnapUpload?.addEventListener('click', (e) => {
+      if (window.AndroidBridge && typeof window.AndroidBridge.openImagePicker === 'function') {
+        e.preventDefault();
+        e.stopPropagation();
+        window.AndroidBridge.openImagePicker();
+      }
+    });
+
+    // Dropzone & File Upload (Fallback for standard browsers)
     if (this.dom.dropzone && this.dom.dropzone.tagName !== 'LABEL') {
       this.dom.dropzone.addEventListener('click', () => this.dom.fileInput.click());
     }
@@ -258,7 +297,16 @@ export class SanketScannerApp {
     }
     try {
       this.html5QrCode = new window.Html5Qrcode('reader');
-      this.enumerateCameras();
+      this.enumerateCameras().then(() => {
+        // Auto-start camera if already permitted
+        if (this.currentMode === 'camera') {
+          if (window.AndroidBridge && typeof window.AndroidBridge.hasCameraPermission === 'function') {
+            if (window.AndroidBridge.hasCameraPermission()) {
+              this.startCameraScanner();
+            }
+          }
+        }
+      });
     } catch (e) {
       console.error('Failed to init Html5Qrcode:', e);
     }
@@ -313,25 +361,40 @@ export class SanketScannerApp {
     }
 
     this.hideResultCard();
-    this.dom.cameraPromptBox.style.display = 'none';
-    this.dom.btnStartCamera.style.display = 'none';
-    this.dom.btnStopCamera.style.display = 'inline-flex';
 
     // Check native Android permission if available
     if (window.AndroidBridge && typeof window.AndroidBridge.hasCameraPermission === 'function') {
       if (!window.AndroidBridge.hasCameraPermission()) {
         if (typeof window.AndroidBridge.requestCameraPermission === 'function') {
           window.AndroidBridge.requestCameraPermission();
-          Toast.info('Please allow camera permission in the dialog.');
+          Toast.info('Please allow camera permission in the system prompt.');
           return;
         }
       }
     }
 
-    const selectedCameraId = this.dom.cameraSelect.value;
-    const cameraConfig = selectedCameraId 
-      ? { deviceId: { exact: selectedCameraId } }
-      : { facingMode: 'environment' };
+    this.dom.cameraPromptBox.style.display = 'none';
+    this.dom.btnStartCamera.style.display = 'none';
+    this.dom.btnStopCamera.style.display = 'inline-flex';
+
+    // Ensure we have device IDs enumerated
+    let targetCamera = this.dom.cameraSelect.value;
+    if (!targetCamera) {
+      if (this.cameras.length === 0) {
+        try {
+          const devices = await window.Html5Qrcode.getCameras();
+          this.cameras = devices || [];
+        } catch (e) {
+          console.warn('Pre-scan camera enumeration:', e);
+        }
+      }
+      if (this.cameras.length > 0) {
+        const backCam = this.cameras.find(c => /back|rear|environment/i.test(c.label));
+        targetCamera = backCam ? backCam.id : this.cameras[0].id;
+      }
+    }
+
+    const cameraConfig = targetCamera ? targetCamera : { facingMode: 'environment' };
 
     const config = {
       fps: 15,
@@ -359,6 +422,7 @@ export class SanketScannerApp {
         console.warn('Initial camera config failed, trying fallback...', firstErr);
         let started = false;
         try {
+          // Fallback 1: User facing camera
           await this.html5QrCode.start(
             { facingMode: 'user' },
             config,
@@ -369,6 +433,7 @@ export class SanketScannerApp {
         } catch (secondErr) {
           console.warn('User facing fallback failed, enumerating cameras...', secondErr);
           try {
+            // Fallback 2: First available hardware device id
             const devices = await window.Html5Qrcode.getCameras();
             if (devices && devices.length > 0) {
               await this.html5QrCode.start(
