@@ -1833,3 +1833,31 @@ img, svg {
     scroll-behavior: auto !important;
   }
 }
+
+/* Camera Controls & Flashlight Active State */
+.camera-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#btn-torch.active {
+  background-color: #fef08a !important;
+  color: #854d0e !important;
+  border-color: #facc15 !important;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.45) !important;
+}
+
+#btn-restart-camera {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+#btn-restart-camera:hover {
+  background-color: rgba(56, 189, 248, 0.08);
+}

@@ -35,7 +35,7 @@
   <link rel="manifest" href="manifest.webmanifest">
 
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1.0.6">
+  <link rel="stylesheet" href="style.css?v=1.0.8">
 </head>
 <body>
 
@@ -150,6 +150,10 @@
             <button type="button" id="btn-stop-camera" class="btn-secondary" style="display: none;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"/></svg>
               <span>Pause Camera</span>
+            </button>
+            <button type="button" id="btn-restart-camera" class="btn-secondary" style="display: none;" title="Restart Camera if frozen or stuck">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <span>Restart Camera</span>
             </button>
             <button type="button" id="btn-torch" class="btn-secondary" style="display: none;" title="Toggle Flashlight">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -296,6 +300,6 @@
   </script>
 
   <!-- Scanner Logic Module -->
-  <script type="module" src="scanner.js?v=1.0.7"></script>
+  <script type="module" src="scanner.js?v=1.0.8"></script>
 </body>
 </html>

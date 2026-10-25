@@ -391,114 +391,250 @@ export class SanketScannerApp {
     }
   }
 
+  forceStopAllVideoTracks() {
+    try {
+      const video = document.querySelector('#reader video');
+      if (video && video.srcObject) {
+        const stream = video.srcObject;
+        const tracks = typeof stream.getVideoTracks === 'function' ? stream.getVideoTracks() : [];
+        tracks.forEach(track => {
+          try {
+            track.stop();
+          } catch (e) {}
+        });
+        video.srcObject = null;
+      }
+    } catch (e) {
+      console.warn('Error stopping video tracks:', e);
+    }
+  }
+
+  async forceCleanCameraInstance() {
+    this.isCameraScanning = false;
+    this.stopCameraWatchdog();
+    this.forceStopAllVideoTracks();
+
+    if (this.html5QrCode) {
+      try {
+        await this.html5QrCode.stop().catch(() => {});
+      } catch (e) {}
+      try {
+        this.html5QrCode.clear();
+      } catch (e) {}
+      this.html5QrCode = null;
+    }
+
+    const readerEl = document.getElementById('reader');
+    if (readerEl) {
+      readerEl.innerHTML = '';
+    }
+
+    this.initHtml5Qrcode();
+  }
+
+  startCameraWatchdog() {
+    this.stopCameraWatchdog();
+    let lastTime = -1;
+    let freezeCount = 0;
+
+    this.cameraWatchdogInterval = setInterval(() => {
+      if (!this.isCameraScanning) return;
+      const video = document.querySelector('#reader video');
+      if (!video) return;
+
+      if (video.currentTime === lastTime && !video.paused) {
+        freezeCount++;
+        if (freezeCount >= 4) { // Frozen for ~4s
+          console.warn('Camera stream freeze detected by watchdog. Auto-recovering...');
+          freezeCount = 0;
+          this.restartCameraScanner();
+        }
+      } else {
+        lastTime = video.currentTime;
+        freezeCount = 0;
+      }
+    }, 1000);
+  }
+
+  stopCameraWatchdog() {
+    if (this.cameraWatchdogInterval) {
+      clearInterval(this.cameraWatchdogInterval);
+      this.cameraWatchdogInterval = null;
+    }
+  }
+
+  getRunningVideoTrack() {
+    try {
+      const video = document.querySelector('#reader video');
+      if (video && video.srcObject) {
+        const stream = video.srcObject;
+        if (typeof stream.getVideoTracks === 'function') {
+          const tracks = stream.getVideoTracks();
+          if (tracks && tracks.length > 0) return tracks[0];
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  async updateTorchStatus() {
+    // Wait for the video element and media track to initialize capabilities
+    await new Promise(r => setTimeout(r, 400));
+    const track = this.getRunningVideoTrack();
+    let supported = false;
+
+    if (track && typeof track.getCapabilities === 'function') {
+      try {
+        const caps = track.getCapabilities();
+        if (caps && ('torch' in caps || caps.fillLightMode?.includes('flash'))) {
+          supported = true;
+        }
+      } catch (e) {}
+    }
+
+    if (!supported && this.html5QrCode) {
+      try {
+        const camCaps = this.html5QrCode.getRunningTrackCameraCapabilities();
+        if (camCaps && typeof camCaps.torchFeature === 'function') {
+          supported = camCaps.torchFeature().isSupported();
+        }
+      } catch (e) {}
+    }
+
+    if (this.dom.btnTorch) {
+      if (supported) {
+        this.dom.btnTorch.style.display = 'inline-flex';
+        this.dom.btnTorch.disabled = false;
+      } else {
+        // Hide if camera hardware lens doesn't have an LED flash
+        this.dom.btnTorch.style.display = 'none';
+      }
+    }
+  }
+
+  async restartCameraScanner() {
+    Toast.info('Restarting camera feed...');
+    await this.stopCameraScanner();
+    await this.forceCleanCameraInstance();
+    await new Promise(r => setTimeout(r, 250));
+    await this.startCameraScanner();
+  }
+
   async startCameraScanner() {
-    if (!this.html5QrCode) {
-      this.initHtml5Qrcode();
-    }
-    if (!this.html5QrCode) {
-      Toast.error('Scanner engine is not ready. Please refresh the page.');
-      return;
-    }
-
-    this.hideResultCard();
-
-    // Check native Android permission if available
-    if (window.AndroidBridge && typeof window.AndroidBridge.hasCameraPermission === 'function') {
-      if (!window.AndroidBridge.hasCameraPermission()) {
-        if (typeof window.AndroidBridge.requestCameraPermission === 'function') {
-          window.AndroidBridge.requestCameraPermission();
-          Toast.info('Please allow camera permission in the system prompt.');
-          return;
-        }
-      }
-    }
-
-    this.dom.cameraPromptBox.style.display = 'none';
-    this.dom.btnStartCamera.style.display = 'none';
-    this.dom.btnStopCamera.style.display = 'inline-flex';
-
-    // Ensure we have device IDs enumerated
-    let targetCamera = this.dom.cameraSelect.value;
-    if (!targetCamera) {
-      if (this.cameras.length === 0) {
-        try {
-          const devices = await window.Html5Qrcode.getCameras();
-          this.cameras = devices || [];
-        } catch (e) {
-          console.warn('Pre-scan camera enumeration:', e);
-        }
-      }
-      if (this.cameras.length > 0) {
-        const backCam = this.cameras.find(c => /back|rear|environment/i.test(c.label));
-        targetCamera = backCam ? backCam.id : this.cameras[0].id;
-      }
-    }
-
-    const cameraConfig = targetCamera ? targetCamera : { facingMode: 'environment' };
-
-    const config = {
-      fps: 15,
-      qrbox: (viewfinderWidth, viewfinderHeight) => {
-        const edge = Math.min(viewfinderWidth, viewfinderHeight);
-        return {
-          width: Math.floor(edge * 0.72),
-          height: Math.floor(edge * 0.72)
-        };
-      },
-      aspectRatio: 1.0
-    };
+    if (this.isCameraScanning) return;
+    if (this.isCameraActionPending) return;
+    this.isCameraActionPending = true;
 
     try {
+      if (!this.html5QrCode) {
+        this.initHtml5Qrcode();
+      }
+      if (!this.html5QrCode) {
+        Toast.error('Scanner engine is not ready. Please refresh the page.');
+        return;
+      }
+
+      this.hideResultCard();
+
+      // Check native Android permission if available
+      if (window.AndroidBridge && typeof window.AndroidBridge.hasCameraPermission === 'function') {
+        if (!window.AndroidBridge.hasCameraPermission()) {
+          if (typeof window.AndroidBridge.requestCameraPermission === 'function') {
+            window.AndroidBridge.requestCameraPermission();
+            Toast.info('Please allow camera permission in the system prompt.');
+            return;
+          }
+        }
+      }
+
+      this.dom.cameraPromptBox.style.display = 'none';
+
+      // Always default to environment (rear) camera for auto-focus + flashlight support
+      let cameraConfig = { facingMode: 'environment' };
+      if (this.userSelectedCamera && this.dom.cameraSelect && this.dom.cameraSelect.value) {
+        cameraConfig = this.dom.cameraSelect.value;
+      }
+
+      const config = {
+        fps: 20,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          const edge = Math.min(viewfinderWidth, viewfinderHeight);
+          return {
+            width: Math.floor(edge * 0.72),
+            height: Math.floor(edge * 0.72)
+          };
+        },
+        aspectRatio: 1.0
+      };
+
+      let started = false;
+
+      // Primary attempt: rear camera
       try {
         await this.html5QrCode.start(
           cameraConfig,
           config,
           (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
-          (errorMessage) => {
-            // Parsing frame errors are normal during live camera feed
-          }
+          () => {}
         );
+        started = true;
       } catch (firstErr) {
-        console.warn('Initial camera config failed, trying fallback...', firstErr);
-        let started = false;
-        try {
-          // Fallback 1: User facing camera
-          await this.html5QrCode.start(
-            { facingMode: 'user' },
-            config,
-            (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
-            () => {}
-          );
-          started = true;
-        } catch (secondErr) {
-          console.warn('User facing fallback failed, enumerating cameras...', secondErr);
+        console.warn('Initial camera start failed, attempting recovery...', firstErr);
+
+        if (/already/i.test(String(firstErr))) {
+          await this.forceCleanCameraInstance();
+          await new Promise(r => setTimeout(r, 200));
+        }
+
+        // Fallback 1: Try device ID if enumerated
+        if (this.cameras.length > 0) {
           try {
-            // Fallback 2: First available hardware device id
-            const devices = await window.Html5Qrcode.getCameras();
-            if (devices && devices.length > 0) {
-              await this.html5QrCode.start(
-                devices[0].id,
-                config,
-                (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
-                () => {}
-              );
-              started = true;
-            }
-          } catch (thirdErr) {
-            console.error('All camera fallbacks failed:', thirdErr);
+            const backCam = this.cameras.find(c => /back|rear|environment/i.test(c.label));
+            const targetId = backCam ? backCam.id : this.cameras[0].id;
+            await this.html5QrCode.start(
+              targetId,
+              config,
+              (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
+              () => {}
+            );
+            started = true;
+          } catch (secondErr) {
+            console.warn('Device ID camera start failed:', secondErr);
           }
         }
-        if (!started) throw firstErr;
+
+        // Fallback 2: User facing camera
+        if (!started) {
+          try {
+            await this.html5QrCode.start(
+              { facingMode: 'user' },
+              config,
+              (decodedText, decodedResult) => this.onScanSuccess(decodedText, decodedResult),
+              () => {}
+            );
+            started = true;
+          } catch (thirdErr) {
+            console.error('All camera fallbacks failed:', thirdErr);
+            throw thirdErr;
+          }
+        }
       }
 
       this.isCameraScanning = true;
       this.dom.reticleOverlay.classList.add('active');
+      this.dom.btnStartCamera.style.display = 'none';
+      this.dom.btnStopCamera.style.display = 'inline-flex';
+      if (this.dom.btnRestartCamera) {
+        this.dom.btnRestartCamera.style.display = 'inline-flex';
+      }
+
       Toast.info('Camera active. Point at any QR code.');
 
-      // Check for torch capability
-      if (this.dom.btnTorch) {
-        this.dom.btnTorch.style.display = 'inline-flex';
-      }
+      // Check for torch capability on the running track
+      this.updateTorchStatus();
+
+      // Start freeze-detection watchdog
+      this.startCameraWatchdog();
 
       // Re-enumerate cameras if labels were hidden before permission
       if (this.cameras.length <= 1) {
@@ -506,46 +642,112 @@ export class SanketScannerApp {
       }
     } catch (err) {
       console.error('Camera start error:', err);
+      this.isCameraScanning = false;
       this.dom.cameraPromptBox.style.display = 'flex';
       this.dom.btnStartCamera.style.display = 'inline-flex';
       this.dom.btnStopCamera.style.display = 'none';
+      if (this.dom.btnRestartCamera) {
+        this.dom.btnRestartCamera.style.display = 'none';
+      }
       this.dom.reticleOverlay.classList.remove('active');
 
       if (err.name === 'NotAllowedError' || /permission/i.test(String(err))) {
         Toast.error('Camera permission denied. Please allow camera access in browser settings.');
       } else {
-        Toast.error('Unable to access camera: ' + (err.message || 'Unknown device error'));
+        Toast.error('Unable to access camera: ' + (err.message || 'Tap Restart Camera to try again'));
       }
+    } finally {
+      this.isCameraActionPending = false;
     }
   }
 
   async stopCameraScanner() {
-    if (!this.html5QrCode || !this.isCameraScanning) return;
+    if (!this.html5QrCode) return;
+    this.stopCameraWatchdog();
+
     try {
-      await this.html5QrCode.stop();
-      this.isCameraScanning = false;
-      this.dom.reticleOverlay.classList.remove('active');
-      this.dom.btnStartCamera.style.display = 'inline-flex';
-      this.dom.btnStopCamera.style.display = 'none';
-      if (this.dom.btnTorch) {
-        this.dom.btnTorch.style.display = 'none';
-        this.torchEnabled = false;
+      if (this.isCameraScanning) {
+        await this.html5QrCode.stop().catch(e => console.warn('html5QrCode.stop:', e));
       }
     } catch (err) {
       console.warn('Error stopping camera:', err);
+    } finally {
+      this.isCameraScanning = false;
+      this.forceStopAllVideoTracks();
+
+      this.dom.reticleOverlay?.classList.remove('active');
+      this.dom.btnStartCamera.style.display = 'inline-flex';
+      this.dom.btnStopCamera.style.display = 'none';
+      if (this.dom.btnRestartCamera) {
+        this.dom.btnRestartCamera.style.display = 'none';
+      }
+      if (this.dom.btnTorch) {
+        this.dom.btnTorch.style.display = 'none';
+        this.dom.btnTorch.classList.remove('active');
+        this.torchEnabled = false;
+        const span = this.dom.btnTorch.querySelector('span');
+        if (span) span.textContent = 'Flashlight';
+      }
     }
   }
 
   async toggleTorch() {
-    try {
-      if (!this.html5QrCode || !this.isCameraScanning) return;
-      this.torchEnabled = !this.torchEnabled;
-      await this.html5QrCode.applyVideoConstraints({
-        advanced: [{ torch: this.torchEnabled }]
-      });
+    if (!this.isCameraScanning) {
+      Toast.error('Please start the camera first');
+      return;
+    }
+
+    const nextState = !this.torchEnabled;
+    let success = false;
+    const track = this.getRunningVideoTrack();
+
+    // Strategy 1: Direct native MediaStreamTrack applyConstraints
+    if (track && typeof track.applyConstraints === 'function') {
+      try {
+        await track.applyConstraints({
+          advanced: [{ torch: nextState }]
+        });
+        success = true;
+      } catch (err1) {
+        console.warn('Direct track torch toggle failed:', err1);
+      }
+    }
+
+    // Strategy 2: Html5Qrcode torchFeature API
+    if (!success && this.html5QrCode) {
+      try {
+        const camCaps = this.html5QrCode.getRunningTrackCameraCapabilities();
+        if (camCaps && typeof camCaps.torchFeature === 'function' && camCaps.torchFeature().isSupported()) {
+          await camCaps.torchFeature().apply(nextState);
+          success = true;
+        }
+      } catch (err2) {
+        console.warn('html5QrCode torchFeature failed:', err2);
+      }
+    }
+
+    // Strategy 3: Html5Qrcode applyVideoConstraints
+    if (!success && this.html5QrCode) {
+      try {
+        await this.html5QrCode.applyVideoConstraints({
+          advanced: [{ torch: nextState }]
+        });
+        success = true;
+      } catch (err3) {
+        console.warn('applyVideoConstraints failed:', err3);
+      }
+    }
+
+    if (success) {
+      this.torchEnabled = nextState;
+      if (this.dom.btnTorch) {
+        this.dom.btnTorch.classList.toggle('active', this.torchEnabled);
+        const span = this.dom.btnTorch.querySelector('span');
+        if (span) span.textContent = this.torchEnabled ? 'Flashlight ON' : 'Flashlight';
+      }
       Toast.info(`Flashlight ${this.torchEnabled ? 'ON' : 'OFF'}`);
-    } catch (err) {
-      Toast.error('Flashlight / torch not supported on this device');
+    } else {
+      Toast.error('Flashlight could not be activated for this camera');
     }
   }
 
