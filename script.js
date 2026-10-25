@@ -798,9 +798,11 @@ export class SanketQRApp {
   }
 }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => new SanketQRApp());
-} else {
-  new SanketQRApp();
+// Initialize when DOM is ready (only on generator page)
+if (typeof document !== 'undefined' && (document.getElementById('url-input') || document.getElementById('generate-btn'))) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => new SanketQRApp());
+  } else {
+    new SanketQRApp();
+  }
 }

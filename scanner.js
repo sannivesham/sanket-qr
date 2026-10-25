@@ -6,7 +6,58 @@
  * haptic vibration, safe link opening, history management.
  */
 
-import { Toast } from './script.js';
+// ==========================================================================
+// Toast Notification Utility (Self-contained)
+// ==========================================================================
+export class Toast {
+  static container = null;
+
+  static init() {
+    if (!this.container) {
+      this.container = document.getElementById('toast-container');
+      if (!this.container) {
+        this.container = document.createElement('div');
+        this.container.id = 'toast-container';
+        this.container.className = 'toast-container';
+        this.container.setAttribute('aria-live', 'polite');
+        document.body.appendChild(this.container);
+      }
+    }
+  }
+
+  static show(message, type = 'success', duration = 3000) {
+    this.init();
+
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    toast.setAttribute('role', 'alert');
+
+    const iconSvg = type === 'success' 
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+      : type === 'error'
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+
+    toast.innerHTML = '<span class="toast-icon">' + iconSvg + '</span><span class="toast-msg">' + this.escapeHTML(message) + '</span>';
+
+    this.container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('hide');
+      setTimeout(() => toast.remove(), 200);
+    }, duration);
+  }
+
+  static success(msg, duration) { this.show(msg, 'success', duration); }
+  static error(msg, duration) { this.show(msg, 'error', duration); }
+  static info(msg, duration) { this.show(msg, 'info', duration); }
+
+  static escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+}
 
 // ==========================================================================
 // Web Audio Synthesizer (Zero-dependency Scan Beep)
@@ -144,13 +195,13 @@ export class SanketScannerApp {
 
   bindEvents() {
     // Mode Switching
-    this.dom.tabCamera.addEventListener('click', () => this.switchMode('camera'));
-    this.dom.tabUpload.addEventListener('click', () => this.switchMode('upload'));
+    this.dom.tabCamera?.addEventListener('click', () => this.switchMode('camera'));
+    this.dom.tabUpload?.addEventListener('click', () => this.switchMode('upload'));
 
     // Camera Controls
-    this.dom.btnStartCamera.addEventListener('click', () => this.startCameraScanner());
-    this.dom.btnStopCamera.addEventListener('click', () => this.stopCameraScanner());
-    this.dom.cameraSelect.addEventListener('change', () => {
+    this.dom.btnStartCamera?.addEventListener('click', () => this.startCameraScanner());
+    this.dom.btnStopCamera?.addEventListener('click', () => this.stopCameraScanner());
+    this.dom.cameraSelect?.addEventListener('change', () => {
       if (this.isCameraScanning) {
         this.stopCameraScanner().then(() => this.startCameraScanner());
       }
@@ -250,7 +301,7 @@ export class SanketScannerApp {
       }
     });
 
-    this.dom.fileInput.addEventListener('change', (e) => {
+    this.dom.fileInput?.addEventListener('change', (e) => {
       const files = e.target.files;
       if (files && files.length > 0) {
         this.handleFileUpload(files[0]);
@@ -275,12 +326,10 @@ export class SanketScannerApp {
     });
 
     // Result Action Buttons
-    this.dom.btnCopyDecoded.addEventListener('click', () => this.copyDecodedText());
-    this.dom.btnOpenLink.addEventListener('click', () => this.openDecodedLink());
-    if (this.dom.btnShareDecoded) {
-      this.dom.btnShareDecoded.addEventListener('click', () => this.shareDecodedText());
-    }
-    this.dom.btnScanAgain.addEventListener('click', () => this.resetAndScanAgain());
+    this.dom.btnCopyDecoded?.addEventListener('click', () => this.copyDecodedText());
+    this.dom.btnOpenLink?.addEventListener('click', () => this.openDecodedLink());
+    this.dom.btnShareDecoded?.addEventListener('click', () => this.shareDecodedText());
+    this.dom.btnScanAgain?.addEventListener('click', () => this.resetAndScanAgain());
 
     // History Clear
     this.dom.btnClearHistory?.addEventListener('click', () => {
@@ -292,7 +341,17 @@ export class SanketScannerApp {
 
   initHtml5Qrcode() {
     if (typeof window.Html5Qrcode === 'undefined') {
-      console.warn('Html5Qrcode library not yet loaded. Will retry on demand.');
+      console.warn('Html5Qrcode library not yet loaded. Setting retry timer.');
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (typeof window.Html5Qrcode !== 'undefined') {
+          clearInterval(interval);
+          this.initHtml5Qrcode();
+        } else if (attempts > 30) {
+          clearInterval(interval);
+        }
+      }, 150);
       return;
     }
     try {
