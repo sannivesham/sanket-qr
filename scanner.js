@@ -237,43 +237,24 @@ export class SanketScannerApp {
       });
     };
 
-    // Android Webview native image picked callback
-    window.onNativeImagePicked = (dataUrl) => {
+    // Android Webview native image picked callback (safe fetch without atob size limits)
+    window.onNativeImagePicked = async (dataUrl) => {
       console.log('Received native image from Android');
       try {
         this.switchMode('upload');
-        const arr = dataUrl.split(',');
-        const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
-        }
-        const file = new File([u8arr], 'sanket_scan_' + Date.now() + '.png', { type: mime });
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], 'sanket_scan_' + Date.now() + '.png', { type: blob.type || 'image/png' });
         this.handleFileUpload(file);
       } catch (err) {
         console.error('Failed to parse native image:', err);
-        Toast.error('Could not load selected image');
+        Toast.error('Could not process image');
       }
     };
 
-    // In Android WebView, tapping dropzone triggers native photo picker directly
+    // Dropzone native file click (uses Android WebChromeClient.onShowFileChooser natively, streaming files of any size without Binder Base64 crash)
     this.dom.dropzone?.addEventListener('click', (e) => {
-      if (window.AndroidBridge && typeof window.AndroidBridge.openImagePicker === 'function') {
-        e.preventDefault();
-        e.stopPropagation();
-        window.AndroidBridge.openImagePicker();
-      }
-    });
-
-    const btnSnapUpload = document.querySelector('label[for="camera-snap-input-upload"]');
-    btnSnapUpload?.addEventListener('click', (e) => {
-      if (window.AndroidBridge && typeof window.AndroidBridge.openImagePicker === 'function') {
-        e.preventDefault();
-        e.stopPropagation();
-        window.AndroidBridge.openImagePicker();
-      }
+      // Natural label click fires file input directly
     });
 
     // Dropzone & File Upload (Fallback for standard browsers)
@@ -569,44 +550,15 @@ export class SanketScannerApp {
   }
 
   /**
-   * High-performance multi-pass image decoder with automatic downscaling & contrast enhancement
+   * Comprehensive 5-Stage Multi-Engine QR Decoder (ZXing + jsQR + Rotations + Downscales)
    */
-  createResizedBlob(file, maxDimension) {
+  loadImageElement(file) {
     return new Promise((resolve) => {
       const img = new Image();
       const url = URL.createObjectURL(file);
       img.onload = () => {
         URL.revokeObjectURL(url);
-        let width = img.naturalWidth || img.width;
-        let height = img.naturalHeight || img.height;
-
-        if (width <= maxDimension && height <= maxDimension) {
-          return resolve(null); // No need to downscale
-        }
-
-        if (width > height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve(new File([blob], 'resized_qr.png', { type: 'image/png' }));
-          } else {
-            resolve(null);
-          }
-        }, 'image/png');
+        resolve(img);
       };
       img.onerror = () => {
         URL.revokeObjectURL(url);
@@ -616,89 +568,225 @@ export class SanketScannerApp {
     });
   }
 
-  createContrastEnhancedBlob(file, maxDimension) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        let width = img.naturalWidth || img.width;
-        let height = img.naturalHeight || img.height;
+  calculateAspectRatioFit(srcWidth, srcHeight, maxDimension) {
+    if (srcWidth <= maxDimension && srcHeight <= maxDimension) {
+      return { width: srcWidth, height: srcHeight };
+    }
+    if (srcWidth > srcHeight) {
+      return {
+        width: maxDimension,
+        height: Math.round((srcHeight * maxDimension) / srcWidth)
+      };
+    } else {
+      return {
+        width: Math.round((srcWidth * maxDimension) / srcHeight),
+        height: maxDimension
+      };
+    }
+  }
 
-        if (width > height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
+  scanWithJsQR(img, width, height, rotationAngle = 0) {
+    if (typeof window.jsQR !== 'function') return null;
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
 
-        const canvas = document.createElement('canvas');
+      if (rotationAngle === 90 || rotationAngle === 270) {
+        canvas.width = height;
+        canvas.height = width;
+      } else {
         canvas.width = width;
         canvas.height = height;
+      }
+
+      ctx.save();
+      if (rotationAngle === 90) {
+        ctx.translate(canvas.width, 0);
+        ctx.rotate(Math.PI / 2);
+      } else if (rotationAngle === 180) {
+        ctx.translate(canvas.width, canvas.height);
+        ctx.rotate(Math.PI);
+      } else if (rotationAngle === 270) {
+        ctx.translate(0, canvas.height);
+        ctx.rotate((3 * Math.PI) / 2);
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+      ctx.restore();
+
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = window.jsQR(imgData.data, canvas.width, canvas.height, {
+        inversionAttempts: 'attemptBoth'
+      });
+
+      if (code && code.data && code.data.trim()) {
+        return code.data.trim();
+      }
+    } catch (e) {
+      // ignore
+    }
+    return null;
+  }
+
+  drawToBlob(img, width, height, rotationAngle = 0) {
+    return new Promise((resolve) => {
+      try {
+        const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        ctx.filter = 'grayscale(100%) contrast(150%) brightness(95%)';
+
+        if (rotationAngle === 90 || rotationAngle === 270) {
+          canvas.width = height;
+          canvas.height = width;
+        } else {
+          canvas.width = width;
+          canvas.height = height;
+        }
+
+        ctx.save();
+        if (rotationAngle === 90) {
+          ctx.translate(canvas.width, 0);
+          ctx.rotate(Math.PI / 2);
+        } else if (rotationAngle === 180) {
+          ctx.translate(canvas.width, canvas.height);
+          ctx.rotate(Math.PI);
+        } else if (rotationAngle === 270) {
+          ctx.translate(0, canvas.height);
+          ctx.rotate((3 * Math.PI) / 2);
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
+        ctx.restore();
 
         canvas.toBlob((blob) => {
           if (blob) {
-            resolve(new File([blob], 'enhanced_qr.png', { type: 'image/png' }));
+            resolve(new File([blob], 'render_' + width + '.png', { type: 'image/png' }));
           } else {
             resolve(null);
           }
         }, 'image/png');
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
+      } catch (err) {
         resolve(null);
-      };
-      img.src = url;
+      }
     });
   }
 
   async scanWithFallback(file) {
-    // Pass 1: Scan original file directly without rendering into hidden DOM (showImage = false)
+    // Stage 1: Fast direct scan with Html5Qrcode (ZXing) in-memory
     try {
-      const res = await this.html5QrCode.scanFile(file, false);
-      if (res) return res;
+      if (this.html5QrCode) {
+        const res = await this.html5QrCode.scanFile(file, false);
+        if (res && res.trim()) return res.trim();
+      }
     } catch (e1) {
-      console.warn('Scan Pass 1 (direct) failed, attempting Pass 2 (1000px downscale)...', e1);
+      console.log('Stage 1 (ZXing direct) failed:', e1);
     }
 
-    // Pass 2: Downscale large camera photos to 1000px max (optimal for ZXing binarizer)
-    try {
-      const scaled1000 = await this.createResizedBlob(file, 1000);
-      if (scaled1000) {
-        const res = await this.html5QrCode.scanFile(scaled1000, false);
-        if (res) return res;
+    // Load file into an HTML Image element to access pixel dimensions
+    const img = await this.loadImageElement(file);
+    if (!img) {
+      throw new Error('Unable to read image file');
+    }
+
+    const naturalWidth = img.naturalWidth || img.width;
+    const naturalHeight = img.naturalHeight || img.height;
+
+    // Stage 2: jsQR scan at original resolution (attempting both normal and inverted colors)
+    if (typeof window.jsQR === 'function') {
+      try {
+        const text = this.scanWithJsQR(img, naturalWidth, naturalHeight, 0);
+        if (text) return text;
+      } catch (e2) {
+        console.log('Stage 2 (jsQR original) failed:', e2);
       }
-    } catch (e2) {
-      console.warn('Scan Pass 2 (1000px) failed, attempting Pass 3 (600px downscale)...', e2);
     }
 
-    // Pass 3: Downscale to 600px (ideal for high-density close-up QR shots)
-    try {
-      const scaled600 = await this.createResizedBlob(file, 600);
-      if (scaled600) {
-        const res = await this.html5QrCode.scanFile(scaled600, false);
-        if (res) return res;
+    // Stage 3: Multi-resolution downscaling (1200px, 800px, 500px)
+    // Mobile photos are often 4000x3000 where QR modules are too large for binarizers
+    const targetScales = [1200, 800, 500].filter(scale => scale < Math.max(naturalWidth, naturalHeight));
+    
+    for (const maxDim of targetScales) {
+      const { width, height } = this.calculateAspectRatioFit(naturalWidth, naturalHeight, maxDim);
+      
+      // Try jsQR at scaled dimension
+      if (typeof window.jsQR === 'function') {
+        const text = this.scanWithJsQR(img, width, height, 0);
+        if (text) return text;
       }
-    } catch (e3) {
-      console.warn('Scan Pass 3 (600px) failed, attempting Pass 4 (contrast enhancement)...', e3);
-    }
 
-    // Pass 4: Grayscale + high-contrast filter (for washed-out photos/screenshots)
-    try {
-      const enhanced = await this.createContrastEnhancedBlob(file, 800);
-      if (enhanced) {
-        const res = await this.html5QrCode.scanFile(enhanced, false);
-        if (res) return res;
+      // Try Html5Qrcode at scaled dimension
+      try {
+        const scaledBlob = await this.drawToBlob(img, width, height, 0);
+        if (scaledBlob && this.html5QrCode) {
+          const res = await this.html5QrCode.scanFile(scaledBlob, false);
+          if (res && res.trim()) return res.trim();
+        }
+      } catch (eScale) {
+        // continue
       }
-    } catch (e4) {
-      console.warn('Scan Pass 4 (contrast enhanced) failed:', e4);
     }
 
-    throw new Error('No QR code detected in image across all resolution passes');
+    // Stage 4: Rotational Scan (90 deg, 180 deg, 270 deg)
+    // Solves camera EXIF orientation issues and rotated screenshots
+    const rotations = [90, 180, 270];
+    const rotScale = Math.min(1000, Math.max(naturalWidth, naturalHeight));
+    const { width: rw, height: rh } = this.calculateAspectRatioFit(naturalWidth, naturalHeight, rotScale);
+
+    for (const angle of rotations) {
+      // Try jsQR with rotation
+      if (typeof window.jsQR === 'function') {
+        const text = this.scanWithJsQR(img, rw, rh, angle);
+        if (text) return text;
+      }
+
+      // Try ZXing with rotation
+      try {
+        const rotBlob = await this.drawToBlob(img, rw, rh, angle);
+        if (rotBlob && this.html5QrCode) {
+          const res = await this.html5QrCode.scanFile(rotBlob, false);
+          if (res && res.trim()) return res.trim();
+        }
+      } catch (eRot) {
+        // continue
+      }
+    }
+
+    // Stage 5: Contrast & Brightness Enhancement (for dark, low-contrast, or washed-out photos)
+    try {
+      const enhancedCanvas = document.createElement('canvas');
+      const { width: ew, height: eh } = this.calculateAspectRatioFit(naturalWidth, naturalHeight, 800);
+      enhancedCanvas.width = ew;
+      enhancedCanvas.height = eh;
+      const ctx = enhancedCanvas.getContext('2d');
+      ctx.filter = 'grayscale(100%) contrast(180%) brightness(105%)';
+      ctx.drawImage(img, 0, 0, ew, eh);
+
+      if (typeof window.jsQR === 'function') {
+        const imgData = ctx.getImageData(0, 0, ew, eh);
+        const code = window.jsQR(imgData.data, ew, eh, { inversionAttempts: 'attemptBoth' });
+        if (code && code.data && code.data.trim()) {
+          return code.data.trim();
+        }
+      }
+
+      // Try Html5Qrcode with enhanced canvas
+      const enhancedFile = await new Promise(resolve => {
+        enhancedCanvas.toBlob(blob => {
+          resolve(blob ? new File([blob], 'enhanced.png', { type: 'image/png' }) : null);
+        }, 'image/png');
+      });
+      if (enhancedFile && this.html5QrCode) {
+        const res = await this.html5QrCode.scanFile(enhancedFile, false);
+        if (res && res.trim()) return res.trim();
+      }
+    } catch (eContrast) {
+      console.log('Stage 5 failed:', eContrast);
+    }
+
+    throw new Error('No QR code detected in this image');
   }
 
   /**
