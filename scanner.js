@@ -569,6 +569,139 @@ export class SanketScannerApp {
   }
 
   /**
+   * High-performance multi-pass image decoder with automatic downscaling & contrast enhancement
+   */
+  createResizedBlob(file, maxDimension) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let width = img.naturalWidth || img.width;
+        let height = img.naturalHeight || img.height;
+
+        if (width <= maxDimension && height <= maxDimension) {
+          return resolve(null); // No need to downscale
+        }
+
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(new File([blob], 'resized_qr.png', { type: 'image/png' }));
+          } else {
+            resolve(null);
+          }
+        }, 'image/png');
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(null);
+      };
+      img.src = url;
+    });
+  }
+
+  createContrastEnhancedBlob(file, maxDimension) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let width = img.naturalWidth || img.width;
+        let height = img.naturalHeight || img.height;
+
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.filter = 'grayscale(100%) contrast(150%) brightness(95%)';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(new File([blob], 'enhanced_qr.png', { type: 'image/png' }));
+          } else {
+            resolve(null);
+          }
+        }, 'image/png');
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(null);
+      };
+      img.src = url;
+    });
+  }
+
+  async scanWithFallback(file) {
+    // Pass 1: Scan original file directly without rendering into hidden DOM (showImage = false)
+    try {
+      const res = await this.html5QrCode.scanFile(file, false);
+      if (res) return res;
+    } catch (e1) {
+      console.warn('Scan Pass 1 (direct) failed, attempting Pass 2 (1000px downscale)...', e1);
+    }
+
+    // Pass 2: Downscale large camera photos to 1000px max (optimal for ZXing binarizer)
+    try {
+      const scaled1000 = await this.createResizedBlob(file, 1000);
+      if (scaled1000) {
+        const res = await this.html5QrCode.scanFile(scaled1000, false);
+        if (res) return res;
+      }
+    } catch (e2) {
+      console.warn('Scan Pass 2 (1000px) failed, attempting Pass 3 (600px downscale)...', e2);
+    }
+
+    // Pass 3: Downscale to 600px (ideal for high-density close-up QR shots)
+    try {
+      const scaled600 = await this.createResizedBlob(file, 600);
+      if (scaled600) {
+        const res = await this.html5QrCode.scanFile(scaled600, false);
+        if (res) return res;
+      }
+    } catch (e3) {
+      console.warn('Scan Pass 3 (600px) failed, attempting Pass 4 (contrast enhancement)...', e3);
+    }
+
+    // Pass 4: Grayscale + high-contrast filter (for washed-out photos/screenshots)
+    try {
+      const enhanced = await this.createContrastEnhancedBlob(file, 800);
+      if (enhanced) {
+        const res = await this.html5QrCode.scanFile(enhanced, false);
+        if (res) return res;
+      }
+    } catch (e4) {
+      console.warn('Scan Pass 4 (contrast enhanced) failed:', e4);
+    }
+
+    throw new Error('No QR code detected in image across all resolution passes');
+  }
+
+  /**
    * Handle scanning an uploaded or pasted image file
    */
   async handleFileUpload(file) {
@@ -597,7 +730,7 @@ export class SanketScannerApp {
     Toast.info('Decoding image...');
 
     try {
-      const decodedText = await this.html5QrCode.scanFile(file, true);
+      const decodedText = await this.scanWithFallback(file);
       this.onScanSuccess(decodedText, null);
     } catch (err) {
       console.warn('File decode error:', err);
