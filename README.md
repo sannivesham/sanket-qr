@@ -65,10 +65,13 @@ qr-website/
 │
 ├── index.html               # Main Generator page (Semantic HTML5, Accessible, SEO)
 ├── scan.html                # Dedicated Scanner page (Camera & File upload)
+├── privacy.html             # Google Play Store compliant Privacy Policy page
+├── PRIVACY_POLICY.md        # Markdown version of Privacy Policy for store listing
 ├── style.css                # Premium modern stylesheet (CSS variables, responsive, animations)
 ├── script.js                # Modular ES6 application logic for the generator
 ├── scanner.js               # Modular scanner controller (Html5Qrcode engine, Web Audio)
 ├── manifest.webmanifest     # PWA manifest for mobile installation
+├── LICENSE                  # MIT License
 ├── README.md                # Comprehensive documentation
 └── assets/
     ├── icons/
