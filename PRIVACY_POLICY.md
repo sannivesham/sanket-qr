@@ -4,7 +4,7 @@
 **Application Name:** Sanket QR (Generator & Scanner)  
 **Developer / Owner:** Sannivesham  
 **Live Policy URL:** [https://sanket-qr.sannivesham.com/privacy.html](https://sanket-qr.sannivesham.com/privacy.html) (Mirror: `https://sannivesham.github.io/sanket-qr/privacy.html`)  
-**Contact Email:** dev@sannivesham.com  
+**Contact Email:** web.sannivesham@gmail.com  
 
 ---
 
@@ -103,5 +103,4 @@ If you have any questions or require clarification regarding this Privacy Policy
 
 - **Developer:** Sannivesham
 - **Application:** Sanket QR
-- **Email:** [dev@sannivesham.com](mailto:dev@sannivesham.com)
-- **GitHub Repository:** [https://github.com/sannivesham/sanket-qr](https://github.com/sannivesham/sanket-qr)
+- **Email:** [web.sannivesham@gmail.com](mailto:web.sannivesham@gmail.com)
